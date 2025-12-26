@@ -119,7 +119,7 @@ The focus is methodological scalability, not dataset size.
 ### Hierarchical Structure Discovery
 Hierarchical clustering on normalized acoustic features reveals a clear multi-level structure with a stable cut at 4 clusters (ref: `qawwali_features_clustered.csv:1-35`). The clustering produces balanced cluster sizes (6, 6, 10, 12 songs) with no singleton clusters or forced symmetry spark_results.txt:64-74 . Distances reflect genuine acoustic divergence rather than noise, as evidenced by the distinct feature profiles that emerge.
 
-![Hierarchical clustering dendrogram of Qawwali performances](figures/dendrogram.png)
+![Hierarchical clustering dendrogram of Qawwali performances](figures/dendogram.png)
 *Figure: Hierarchical clustering dendrogram showing natural separation of Qawwali performance regimes.*
 
 
