@@ -1,3 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+qawwalrang_env/
+venv/
+.env/
+
+# Audio data
+data/qawwali_audio/
+data/qawwali_audio_clean/
+data/qawwali_audio_clean_48k_backup/
+*.mp3
+*.wav
+
+# Features / intermediate outputs
+features/
+*.npy
+*.parquet
+*.csv
+
+# OS
+.DS_Store
+
+# prev content
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
