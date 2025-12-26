@@ -126,6 +126,13 @@ Hierarchical clustering on normalized acoustic features reveals a clear multi-le
 ### Feature Independence & Validity
 Feature correlation analysis confirms that tabla energy statistics are strongly correlated internally (expected), while taali MFCC statistics form a separate correlated block (ref `4_reduce_features.py:25-35`). The 8 extracted features capture partially independent performance dimensions: tabla energy, variance, lowband ratio, and activity; plus taali MFCC statistics, activity, and burstiness (ref `qawwali_features.csv:1-8`). This validates the design choice of separating percussion-driven and vocal/taali-driven features.
 
+The correlation matrix visualization shows: 
+- Strong intra-group correlations within core tabla energy features and taali MFCC features
+- Weak to moderate cross-group correlations 
+- This validates the design choice of separating percussion-driven and vocal/taali-driven features
+
+![Correlation Matrix](figures/1_corelation_resutls_step_3.5_loadcsv.png)
+
 ### Cluster Profiling (Interpretive, Audio-Only)
 Each cluster exhibits a distinct acoustic signature based on z-score normalized features (ref `6_cluster_profiling.py:41-54`):
 
