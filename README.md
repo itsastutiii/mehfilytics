@@ -1,17 +1,19 @@
-# Mehfilytics — Performance-Based Acoustic Analysis of Qawwali Music
+# Mehfilytics -- Performance-Based Acoustic Analysis of Qawwali Music
 
-🌙 Mehfilytics investigates whether distinct performance-based acoustic regimes emerge within Qawwali music, using audio-only, unsupervised analysis and a Big Data Analytics–style pipeline.
+🌙 Mehfilytics investigates whether distinct performance based acoustic regimes emerge within Qawwali music, using audio-only, unsupervised analysis and a Big Data Analytics style pipeline.
 
 
-This project deliberately studies how Qawwali is performed—rhythm, percussion, vocal activity, and intensity—not lyrics, devotion, or religious semantics.
+This project deliberately studies how Qawwali is performed rhythm, percussion, vocal activity, and intensity; not lyrics, devotion, or religious semantics(yet!).
 
 
 All interpretations are grounded strictly in acoustic evidence.
 
 
 ## Objective
-To determine whether unsupervised clustering of mid-level acoustic features can reveal recurring performance regimes in Qawwali music, and to operationalize the results within a Spark-compatible analytics pipeline.\
-Key constraints:
+To determine whether unsupervised clustering of mid-level acoustic features can reveal recurring performance regimes in Qawwali music, and to operationalize the results within a Spark-compatible analytics pipeline.
+
+
+**Key constraints**:
 - Audio-only (no lyrics or semantic metadata)
 - Unsupervised (no labels, no classifiers)
 - Interpretive but non-declarative (descriptive regimes, not genre tags)
@@ -22,7 +24,7 @@ Key constraints:
 - 34 validated audio clips
 - ~60 seconds each
 - Mono, 44.1 kHz
-- Dataset intentionally frozen post-validation for signal correctness
+- Dataset intentionally frozen post-validation for signal correctness\
 The dataset size is appropriate for exploratory MIR clustering and aligns with common practice for mid-level acoustic studies emphasizing interpretability over scale.
 
 ### Metadata
@@ -36,7 +38,7 @@ Metadata is not used for clustering, only for optional post-hoc analysis.
 Each audio clip is reduced to a **single interpretable feature vector** capturing:
 - Tabla energy and rhythmic activity
 - Taali / vocal transient density
-- Spectral and temporal variation characteristics
+- Spectral and temporal variation characteristics\
 Final feature table:
 ```
 34 songs × 8 acoustic features
@@ -57,7 +59,7 @@ For each cluster:
 - Feature centroids
 - Relative feature importance
 - Per-cluster profile plots
-- PCA visualization (interpretive only)
+- PCA visualization (interpretive only)\
 These artifacts support numerically justified interpretation of performance regimes.
 
 ### 3. Interpretive Findings
@@ -65,7 +67,7 @@ Clusters correspond to performance regimes, such as:
 - Percussion-dominant, rhythmically dynamic passages
 - Taali / call–response–heavy sections
 - Restrained or low-activity passages
-- Steady-state rhythmic grounding sections
+- Steady-state rhythmic grounding sections\
 ⚠️ Important:\
 These are descriptive acoustic regimes, not semantic or genre labels.\
 No claims are made such as “Cluster X = hamd / naat / ghazal.”
@@ -96,13 +98,13 @@ Analytic Results + Visualizations + Interpretation
 ```
 
 ## Design Rationale (BDA)
-Low-level signal processing is intentionally performed outside Spark/Hadoop, in line with best practices in Music Information Retrieval.\
+Low-level signal processing is intentionally performed outside Spark/Hadoop, in line with best practices in Music Information Retrieval.
 
 Spark is used for:
 - Structured aggregation
 - Cluster validation
 - SQL-style analytics
-- Scalable querying and storage
+- Scalable querying and storage\
 The focus is methodological scalability, not dataset size.
 
 ## Project Status
@@ -111,4 +113,6 @@ The focus is methodological scalability, not dataset size.
 - Unsupervised clustering ✔
 - Interpretive profiling & PCA ✔
 - Spark / Parquet analytics ✔
+
+
 All implementation details, commands, and verification steps are documented in `implementation_guide.md`.
