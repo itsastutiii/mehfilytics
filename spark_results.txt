@@ -1,0 +1,125 @@
+The entire output is pasted below, the sparkle lines are notes. 
+
+(qawwalrang_env) sidharthasinha@Sidharthas-MacBook-Pro QawwalRang % pyspark
+✨ Apache Spark was executed in local mode to demonstrate scalable analytics without requiring a distributed cluster.
+Python 3.10.5 (v3.10.5:f377153967, Jun  6 2022, 12:36:10) [Clang 13.0.0 (clang-1300.0.29.30)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+WARNING: Using incubator modules: jdk.incubator.vector
+Using Spark's default log4j profile: org/apache/spark/log4j2-defaults.properties
+25/12/26 21:02:21 WARN Utils: Your hostname, Sidharthas-MacBook-Pro.local, resolves to a loopback address: 127.0.0.1; using 192.168.1.40 instead (on interface en0)
+25/12/26 21:02:21 WARN Utils: Set SPARK_LOCAL_IP if you need to bind to another address
+Using Spark's default log4j profile: org/apache/spark/log4j2-defaults.properties
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+25/12/26 21:02:22 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /__ / .__/\_,_/_/ /_/\_\   version 4.1.0
+      /_/
+
+Using Python version 3.10.5 (v3.10.5:f377153967, Jun  6 2022 12:36:10)
+Spark context Web UI available at http://192.168.1.40:4040
+Spark context available as 'sc' (master = local[*], app id = local-1766763143380).
+SparkSession available as 'spark'.
+Cmd click to launch VS Code Native REPL
+
+>>> from pyspark.sql import SparkSession
+>>> 
+>>> spark = SparkSession.builder.appName("QawwaliBDA").getOrCreate()
+25/12/26 21:03:12 WARN SparkSession: Using an existing Spark session; only runtime SQL configurations will take effect.
+✨ CSV Ingestion into Spark DataFrame
+>>> df = spark.read.csv(
+...     "data/qawwali_features_clustered.csv",
+...     header=True,
+...     inferSchema=True
+... )
+>>> 
+>>> df.printSchema()
+root
+ |-- song_id: string (nullable = true)
+ |-- tabla_energy_mean: double (nullable = true)
+ |-- tabla_energy_var: double (nullable = true)
+ |-- tabla_lowband_ratio: double (nullable = true)
+ |-- tabla_activity: double (nullable = true)
+ |-- taali_mfcc_mean: double (nullable = true)
+ |-- taali_mfcc_var: double (nullable = true)
+ |-- taali_activity: double (nullable = true)
+ |-- taali_burstiness: double (nullable = true)
+ |-- cluster: integer (nullable = true)
+
+>>> df.show(5)
++-------+--------------------+--------------------+--------------------+-------------------+-------------------+-------------------+-------------------+-------------------+-------+
+|song_id|   tabla_energy_mean|    tabla_energy_var| tabla_lowband_ratio|     tabla_activity|    taali_mfcc_mean|     taali_mfcc_var|     taali_activity|   taali_burstiness|cluster|
++-------+--------------------+--------------------+--------------------+-------------------+-------------------+-------------------+-------------------+-------------------+-------+
+|   q012| -0.8712863521474301| -0.7869930437787868|  0.5371528146631487| -1.275841146373761| 0.5617192798035525| 0.7456409473923465|-0.7212341094943109|-1.2099870426232442|      3|
+|   q006|-0.34971505089810384|-0.25940855811243146|-0.21586890341733417|-0.2765586883465598| 2.2401680403791917|0.10018162348486558| 1.8699758762349024| 0.9210133572158399|      1|
+|   q007|-0.04401721935180633| -0.1263287276143217|  0.9275695082747166|-1.0467637597862982|-0.8120002470500598|-0.5114871266752145|-0.8233110156601696| 0.7189750093812607|      3|
+|   q013|  0.7413949393714158|   0.749913185009677| -0.1822543974614788|0.11666076264609329|0.48427379447436214| 0.7175204128535241| 1.4195746820185344|0.33830604066573033|      2|
+|   q039| 0.07451803938045905| 0.21565448875018298|-0.05038495815554658|-1.0918577335239879| -2.370867143703242| -3.884705466005331|-0.8233110156601696| 0.2878633024256366|      4|
++-------+--------------------+--------------------+--------------------+-------------------+-------------------+-------------------+-------------------+-------------------+-------+
+only showing top 5 rows
+
+✨ Cluster Size Query (Distributed Aggregation)
+>>> df.groupBy("cluster").count().show()
+
++-------+-----+
+|cluster|count|
++-------+-----+
+|      1|    6|
+|      3|   12|
+|      4|   10|
+|      2|    6|
++-------+-----+
+
+✨ Per-Cluster Feature Means
+>>> df.groupBy("cluster").mean().show(truncate=False)
++-------+----------------------+---------------------+------------------------+-------------------+--------------------+-------------------+--------------------+---------------------+------------+
+|cluster|avg(tabla_energy_mean)|avg(tabla_energy_var)|avg(tabla_lowband_ratio)|avg(tabla_activity)|avg(taali_mfcc_mean)|avg(taali_mfcc_var)|avg(taali_activity) |avg(taali_burstiness)|avg(cluster)|
++-------+----------------------+---------------------+------------------------+-------------------+--------------------+-------------------+--------------------+---------------------+------------+
+|1      |-0.20373061623409958  |-0.33052134854179066 |-0.6250868933089505     |0.06946240346731158|1.419834691290428   |0.6039419660090702 |1.6526093601268474  |0.100392100907576    |1.0         |
+|3      |-0.6547229780380771   |-0.49368422408869983 |0.4900256870608856      |-0.9059202484789143|-0.08734739825984215|0.24563199553978518|-0.38489479610817817|0.09972034189103708  |3.0         |
+|4      |0.02723945941415462   |-0.1882432753919346  |-0.6267596436608691     |0.7391379761211604 |-1.0415772406298367 |-1.0665121634754493|-0.7388081747826596 |-0.15861735024878915 |4.0         |
+|2      |1.4677774732866606    |1.631628589039081    |0.6896349252886238      |0.5104814666219157 |0.4908221729456512  |0.682314315370448  |0.34852719006060884 |-0.03547053427500084 |2.0         |
++-------+----------------------+---------------------+------------------------+-------------------+--------------------+-------------------+--------------------+---------------------+------------+
+
+>>> 
+>>> df.createOrReplaceTempView("qawwali_clusters")
+
+✨ Spark SQL / Hive-Style Query
+>>> spark.sql("""
+... SELECT
+...   cluster,
+...   COUNT(*) AS num_performances,
+...   AVG(tabla_energy_mean) AS avg_tabla_energy,
+...   AVG(taali_activity) AS avg_taali_activity
+... FROM qawwali_clusters
+... GROUP BY cluster
+... ORDER BY avg_tabla_energy DESC
+... """).show()
++-------+----------------+--------------------+--------------------+
+|cluster|num_performances|    avg_tabla_energy|  avg_taali_activity|
++-------+----------------+--------------------+--------------------+
+|      2|               6|  1.4677774732866606| 0.34852719006060884|
+|      4|              10| 0.02723945941415462| -0.7388081747826596|
+|      1|               6|-0.20373061623409958|  1.6526093601268474|
+|      3|              12| -0.6547229780380771|-0.38489479610817817|
++-------+----------------+--------------------+--------------------+
+
+✨ Parquet Write + Reload
+>>> df.write.mode("overwrite").parquet("data/qawwali_features_clustered.parquet")
+                                                                   
+>>> spark.read.parquet("data/qawwali_features_clustered.parquet").show(5)
++-------+--------------------+--------------------+--------------------+-------------------+-------------------+-------------------+-------------------+-------------------+-------+
+|song_id|   tabla_energy_mean|    tabla_energy_var| tabla_lowband_ratio|     tabla_activity|    taali_mfcc_mean|     taali_mfcc_var|     taali_activity|   taali_burstiness|cluster|
++-------+--------------------+--------------------+--------------------+-------------------+-------------------+-------------------+-------------------+-------------------+-------+
+|   q012| -0.8712863521474301| -0.7869930437787868|  0.5371528146631487| -1.275841146373761| 0.5617192798035525| 0.7456409473923465|-0.7212341094943109|-1.2099870426232442|      3|
+|   q006|-0.34971505089810384|-0.25940855811243146|-0.21586890341733417|-0.2765586883465598| 2.2401680403791917|0.10018162348486558| 1.8699758762349024| 0.9210133572158399|      1|
+|   q007|-0.04401721935180633| -0.1263287276143217|  0.9275695082747166|-1.0467637597862982|-0.8120002470500598|-0.5114871266752145|-0.8233110156601696| 0.7189750093812607|      3|
+|   q013|  0.7413949393714158|   0.749913185009677| -0.1822543974614788|0.11666076264609329|0.48427379447436214| 0.7175204128535241| 1.4195746820185344|0.33830604066573033|      2|
+|   q039| 0.07451803938045905| 0.21565448875018298|-0.05038495815554658|-1.0918577335239879| -2.370867143703242| -3.884705466005331|-0.8233110156601696| 0.2878633024256366|      4|
++-------+--------------------+--------------------+--------------------+-------------------+-------------------+-------------------+-------------------+-------------------+-------+
+only showing top 5 rows
+>>> 
+>>> 
