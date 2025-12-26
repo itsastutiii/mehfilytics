@@ -114,5 +114,48 @@ The focus is methodological scalability, not dataset size.
 - Interpretive profiling & PCA ✔
 - Spark / Parquet analytics ✔
 
+## Results & Analysis
+
+### Hierarchical Structure Discovery
+Hierarchical clustering on normalized acoustic features reveals a clear multi-level structure with a stable cut at 4 clusters (ref: `qawwali_features_clustered.csv:1-35`). The clustering produces balanced cluster sizes (6, 6, 10, 12 songs) with no singleton clusters or forced symmetry spark_results.txt:64-74 . Distances reflect genuine acoustic divergence rather than noise, as evidenced by the distinct feature profiles that emerge.
+
+![Hierarchical clustering dendrogram of Qawwali performances](figures/dendrogram.png)
+*Figure: Hierarchical clustering dendrogram showing natural separation of Qawwali performance regimes.*
+
+
+### Feature Independence & Validity
+Feature correlation analysis confirms that tabla energy statistics are strongly correlated internally (expected), while taali MFCC statistics form a separate correlated block (ref `4_reduce_features.py:25-35`). The 8 extracted features capture partially independent performance dimensions: tabla energy, variance, lowband ratio, and activity; plus taali MFCC statistics, activity, and burstiness (ref `qawwali_features.csv:1-8`). This validates the design choice of separating percussion-driven and vocal/taali-driven features.
+
+### Cluster Profiling (Interpretive, Audio-Only)
+Each cluster exhibits a distinct acoustic signature based on z-score normalized features (ref `6_cluster_profiling.py:41-54`):
+
+- Cluster 2: High tabla energy & variance (z-scores up to +2.85) → percussion-dominant performances
+- Cluster 1: Elevated taali activity (z-scores up to +1.95) → call-response/vocal emphasis
+- Cluster 3: Low energy & activity (most songs with taali_activity = 0.0) → restrained or transitional passages
+- Cluster 4: Moderate energy with suppressed taali → steady-state rhythmic grounding
+All interpretations remain audio-only, feature-backed, and descriptive without semantic labels.
+
+![Cluster 2](figures/cluster_2_profile.png)
+![Cluster 1](figures/cluster_1_profile.png)
+![Cluster 3](figures/cluster_3_profile.png)
+![Cluster 4](figures/cluster_4_profile.png)
+
+PCA Visualization
+2D PCA projection explains 60.2% of total variance (33.3% + 26.9%) (ref `7_pca_visualization.py:78-86`). Clusters show partial overlap, which is expected in real acoustic data, while separation trends remain consistent with hierarchical clustering results. PCA is used strictly for interpretability, not decision-making.
+
+![PCA Clusters](figures/pca_clusters.png)
+![Labeled PCA Clusters](figures/pca_clusters_labeled.png)
+
+### Spark / Big Data Analytics Validation
+The clustered feature table was successfully ingested into Spark with automatic schema inference (8 double features + 1 integer cluster) (ref `spark_results.txt:39-50`). Distributed aggregations and SparkSQL queries executed successfully, including per-cluster feature means and performance counts (ref `spark_results.txt:76-108`). Data was persisted to Parquet format and reloaded with integrity intact (ref `spark_results.txt:110-123`) , confirming BDA-readiness and compatibility with scalable data pipelines.
+
+Execution transcript: `spark_results.txt`
+
+### Notes
+- All cluster interpretations are derived from normalized z-scores relative to the dataset mean
+- The feature reduction from time-frequency matrices to 8 scalar features enables efficient Spark processing
+- No semantic or genre labels are assigned - clusters represent acoustic performance regimes only
+- The entire pipeline validates that distinct performance-based acoustic regimes emerge in Qawwali music using unsupervised, audio-only analysis
+
 
 All implementation details, commands, and verification steps are documented in `implementation_guide.md`.
