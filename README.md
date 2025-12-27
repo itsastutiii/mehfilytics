@@ -3,18 +3,18 @@
 🌙 Mehfilytics investigates whether distinct performance based acoustic regimes emerge within Qawwali music, using audio-only, unsupervised analysis and a Big Data Analytics style pipeline.
 
 
-This project deliberately studies how Qawwali is performed rhythm, percussion, vocal activity, and intensity; not lyrics, devotion, or religious semantics(yet!).
+This project deliberately studies how Qawwali is performed (focus on rhythm, percussion, vocal activity, and intensity) not lyrics, devotion, or religious semantics (yet!). All interpretations are grounded strictly in acoustic evidence.
 
 
-All interpretations are grounded strictly in acoustic evidence.
+This version of the project is an outline of something cooler -- for now, it is primarily for BDA Lab, but a longer term goal of this project can be a whole lot prettier.
 
 
 ## Objective
-To determine whether unsupervised clustering of mid-level acoustic features can reveal recurring performance regimes in Qawwali music, and to operationalize the results within a Spark-compatible analytics pipeline.
+To determine whether unsupervised clustering of mid-level acoustic features can reveal recurring performance regimes in Qawwali music, and to operationalize the results within a Spark compatible analytics pipeline.
 
 
 **Key constraints**:
-- Audio-only (no lyrics or semantic metadata)
+- Audio only (no lyrics or semantic metadata)
 - Unsupervised (no labels, no classifiers)
 - Interpretive but non-declarative (descriptive regimes, not genre tags)
 
@@ -24,21 +24,27 @@ To determine whether unsupervised clustering of mid-level acoustic features can 
 - 34 validated audio clips
 - ~60 seconds each
 - Mono, 44.1 kHz
-- Dataset intentionally frozen post-validation for signal correctness\
-The dataset size is appropriate for exploratory MIR clustering and aligns with common practice for mid-level acoustic studies emphasizing interpretability over scale.
+- Dataset intentionally frozen post-validation for signal correctness
+
+
+The dataset size is appropriate for exploratory MIR^ clustering and aligns with common practice for mid-level acoustic studies emphasizing interpretability over scale.
 
 ### Metadata
 - Song ID
 - Artist
 - Source information
 - Duration
+
+
 Metadata is not used for clustering, only for optional post-hoc analysis.
 
 ## Feature Representation
 Each audio clip is reduced to a **single interpretable feature vector** capturing:
 - Tabla energy and rhythmic activity
 - Taali / vocal transient density
-- Spectral and temporal variation characteristics\
+- Spectral and temporal variation characteristics (the other acoustic features computed in `src/4_reduce_features.py`)
+
+
 Final feature table:
 ```
 34 songs × 8 acoustic features
@@ -46,7 +52,9 @@ Final feature table:
 ## Outputs
 This project produces analytic artifacts, not predictive models.
 ### 1. Cluster Assignments
-Each performance is assigned a cluster via unsupervised hierarchical clustering.\
+Each performance is assigned a cluster via unsupervised hierarchical clustering.
+
+
 Primary outputs:
 - `data/qawwali_features_clustered.csv`
 - `data/qawwali_features_clustered.parquet`
@@ -59,27 +67,31 @@ For each cluster:
 - Feature centroids
 - Relative feature importance
 - Per-cluster profile plots
-- PCA visualization (interpretive only)\
+- PCA visualization (interpretive only)
+
+
 These artifacts support numerically justified interpretation of performance regimes.
 
 ### 3. Interpretive Findings
 Clusters correspond to performance regimes, such as:
-- Percussion-dominant, rhythmically dynamic passages
-- Taali / call–response–heavy sections
-- Restrained or low-activity passages
-- Steady-state rhythmic grounding sections\
-⚠️ Important:\
-These are descriptive acoustic regimes, not semantic or genre labels.\
-No claims are made such as “Cluster X = hamd / naat / ghazal.”
+- Percussion dominant, rhythmically dynamic passages
+- Taali / call–response-heavy sections
+- Restrained or low activity passages
+- Steady state rhythmic grounding sections
+
+
+⚠️ Important: These are descriptive acoustic regimes, not semantic or genre labels. No claims are made such as “Cluster X = hamd / naat / ghazal.”
 
 ### 4. Big Data Analytics Validation
 The structured feature outputs are:
 - Ingested into Apache Spark (local mode)
 - Queried using SparkSQL / Hive-style analytics
 - Stored in columnar Parquet format
+
+
 This demonstrates that the pipeline is:
 - Scalable
-- Framework-compatible
+- Framework compatible
 - Deployable to HDFS without code changes
 
 ## System Architecture
@@ -98,13 +110,15 @@ Analytic Results + Visualizations + Interpretation
 ```
 
 ## Design Rationale (BDA)
-Low-level signal processing is intentionally performed outside Spark/Hadoop, in line with best practices in Music Information Retrieval.
+Low-level signal^ processing is intentionally performed outside Spark/Hadoop, in line with best practices in Music Information Retrieval.
 
 Spark is used for:
 - Structured aggregation
 - Cluster validation
 - SQL-style analytics
-- Scalable querying and storage\
+- Scalable querying and storage
+
+
 The focus is methodological scalability, not dataset size.
 
 ## Project Status
@@ -117,21 +131,21 @@ The focus is methodological scalability, not dataset size.
 ## Results & Analysis
 
 ### Hierarchical Structure Discovery
-Hierarchical clustering on normalized acoustic features reveals a clear multi-level structure with a stable cut at 4 clusters (ref: `qawwali_features_clustered.csv:1-35`). The clustering produces balanced cluster sizes (6, 6, 10, 12 songs) with no singleton clusters or forced symmetry spark_results.txt:64-74 . Distances reflect genuine acoustic divergence rather than noise, as evidenced by the distinct feature profiles that emerge.
+Hierarchical clustering on normalized acoustic features reveals a clear multi-level structure with a stable cut at 4 clusters (ref: `qawwali_features_clustered.csv:1-35`). The clustering produces balanced cluster sizes (6, 6, 10, 12 songs) with no singleton clusters or forced symmetry (ref `spark_results.txt:64-74`). Distances reflect genuine acoustic divergence rather than noise, as evidenced by the distinct feature profiles that emerge.
 
 ![Hierarchical clustering dendrogram of Qawwali performances](figures/dendogram.png)
 *Figure: Hierarchical clustering dendrogram showing natural separation of Qawwali performance regimes.*
 
 
 ### Feature Independence & Validity
-Feature correlation analysis confirms that tabla energy statistics are strongly correlated internally (expected), while taali MFCC statistics form a separate correlated block (ref `4_reduce_features.py:25-35`). The 8 extracted features capture partially independent performance dimensions: tabla energy, variance, lowband ratio, and activity; plus taali MFCC statistics, activity, and burstiness (ref `qawwali_features.csv:1-8`). This validates the design choice of separating percussion-driven and vocal/taali-driven features.
+Feature correlation analysis confirms that tabla energy statistics are strongly correlated internally (expected), while taali MFCC^ statistics form a separate correlated block (ref `4_reduce_features.py:25-35`). The 8 extracted features capture partially independent performance dimensions: tabla energy, variance, lowband ratio, and activity; plus taali MFCC statistics, activity, and burstiness (ref `qawwali_features.csv:1-8`). This validates the design choice of separating percussion-driven and vocal/taali-driven features.
 
 The correlation matrix visualization shows: 
 - Strong intra-group correlations within core tabla energy features and taali MFCC features
 - Weak to moderate cross-group correlations 
 - This validates the design choice of separating percussion-driven and vocal/taali-driven features
 
-![Correlation Matrix](figures/1_corelation_resutls_step_3.5_loadcsv.png)
+![Correlation Matrix](figures/corelation_res.png)
 
 ### Cluster Profiling (Interpretive, Audio-Only)
 Each cluster exhibits a distinct acoustic signature based on z-score normalized features (ref `6_cluster_profiling.py:41-54`):
@@ -140,6 +154,8 @@ Each cluster exhibits a distinct acoustic signature based on z-score normalized 
 - Cluster 1: Elevated taali activity (z-scores up to +1.95) → call-response/vocal emphasis
 - Cluster 3: Low energy & activity (most songs with taali_activity = 0.0) → restrained or transitional passages
 - Cluster 4: Moderate energy with suppressed taali → steady-state rhythmic grounding
+
+
 All interpretations remain audio-only, feature-backed, and descriptive without semantic labels.
 
 ![Cluster 2](figures/cluster_2_profile.png)
@@ -147,7 +163,7 @@ All interpretations remain audio-only, feature-backed, and descriptive without s
 ![Cluster 3](figures/cluster_3_profile.png)
 ![Cluster 4](figures/cluster_4_profile.png)
 
-PCA Visualization
+### PCA Visualization
 2D PCA projection explains 60.2% of total variance (33.3% + 26.9%) (ref `7_pca_visualization.py:78-86`). Clusters show partial overlap, which is expected in real acoustic data, while separation trends remain consistent with hierarchical clustering results. PCA is used strictly for interpretability, not decision-making.
 
 ![PCA Clusters](figures/pca_clusters.png)
@@ -166,3 +182,20 @@ Execution transcript: `spark_results.txt`
 
 
 All implementation details, commands, and verification steps are documented in `implementation_guide.md`.
+
+## Glossary 
+* CQT: Constant-Q Transform is a time–frequency representation for music that maps audio into logarithmically spaced frequency bins aligned with musical notes. Unlike Fourier transforms with fixed resolution, CQT gives better pitch detail for low notes and better time detail for high notes, matching how humans hear music. For example, a low bass note and its harmonics stay clearly separated, while fast high-pitched claps or strokes remain sharp in time. The constant quality factor (Q) keeps harmonic patterns consistent across pitches, making CQT useful for instrument recognition, music transcription, and timbre analysis.
+* Low signal level: basic features extracted from an audio signal, which are currently the main focus of Music Information Retrieval techniques due to the limitations in capturing more complex aspects of music content.
+* MFCC: Mel-frequency cepstral coefficients are audio features that summarize the sound spectrum in a compact way, designed to match how humans perceive sound. Sound/raw audio is like a string of pressure values, comparable to an HD photo, and MFCC extracts the outline. Mel-freq relates to how humans hear sound (200hz and 400hz diff seems bigger than 5200hz and 5400 hz), and bends frequencies to match this perception. Cepstral analysis separates the overall shape of the sound (timbre) from fine details.
+* MIR (Music Information Retrieval): extraction of information from music and its analysis.
+* Taali: rhythmic clapping that denotes beats or sections within a time cycle (Taal). Qawwali (and other music forms) can be based on different taal cycles, most commonly teen-taal, which has 16 beats, segmented into 4 vibhags of 4 beats each.
+* Tabla: percussion drum component. Played to match taal cycles and support taali and vocals. 
+* Features Extracted:
+  * tabla_energy_mean: Overall percussion intensity across the entire performance.
+  * tabla_energy_var: Dynamic range and variation in tabla intensity.
+  * tabla_lowband_ratio: Bass emphasis ratio using lowest 20 CQT bins.
+  * tabla_activity: Proportion of time frames with active tabla signal.
+  * taali_mfcc_mean: Average timbral characteristic of vocal/clapping component.
+  * taali_mfcc_var: Timbral diversity in the taali component.
+  * taali_activity: Proportion of time frames with active vocal/clapping signal.
+  * taali_burstiness: Suddenness measure of clapping/transient events.
