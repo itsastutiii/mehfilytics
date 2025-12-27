@@ -133,7 +133,7 @@ The focus is methodological scalability, not dataset size.
 ### Hierarchical Structure Discovery
 Hierarchical clustering on normalized acoustic features reveals a clear multi-level structure with a stable cut at 4 clusters (ref: `qawwali_features_clustered.csv:1-35`). The clustering produces balanced cluster sizes (6, 6, 10, 12 songs) with no singleton clusters or forced symmetry (ref `spark_results.txt:64-74`). Distances reflect genuine acoustic divergence rather than noise, as evidenced by the distinct feature profiles that emerge.
 
-![Hierarchical clustering dendrogram of Qawwali performances](figures/dendogram.png)
+![Hierarchical clustering dendrogram of Qawwali performances](figures/dendrogram.png)
 *Figure 1: Hierarchical clustering dendrogram showing natural separation of Qawwali performance regimes.*
 
 
@@ -145,7 +145,7 @@ The correlation matrix visualization shows:
 - Weak to moderate cross-group correlations 
 - This validates the design choice of separating percussion-driven and vocal/taali-driven features
 
-![Correlation Matrix](figures/corelation_res.png)
+![Correlation Matrix](figures/feature_corel_matrix.png)
 *Figure 2: Correlation matrix visualisation for 8 core features.*
 
 ### Cluster Profiling (Interpretive, Audio-Only)
@@ -159,20 +159,20 @@ Each cluster exhibits a distinct acoustic signature based on z-score normalized 
 
 All interpretations remain audio-only, feature-backed, and descriptive without semantic labels.
 
-![Cluster 2](figures/cluster_2_profile.png)
-![Cluster 1](figures/cluster_1_profile.png)
-![Cluster 3](figures/cluster_3_profile.png)
-![Cluster 4](figures/cluster_4_profile.png)
+![Cluster 2](figures/clusters/dataset_72_cluster_2_profile.png)
+![Cluster 1](figures/clusters/dataset_72_cluster_1_profile.png)
+![Cluster 3](figures/clusters/dataset_72_cluster_3_profile.png)
+![Cluster 4](figures/clusters/dataset_72_cluster_4_profile.png)
 *Figures 3a, b, c, d: Four distinct clusters formed visualized through z-score normalized features*
 
 
 ### PCA Visualization
 2D PCA projection explains 60.2% of total variance (33.3% + 26.9%) (ref `7_pca_visualization.py:78-86`). Clusters show partial overlap, which is expected in real acoustic data, while separation trends remain consistent with hierarchical clustering results. PCA is used strictly for interpretability, not decision-making.
 
-![PCA Clusters](figures/pca_clusters.png)
+![PCA Clusters](figures/pca/dataset_72_pca_clusters.png)
 *Figure 4a: PCA Clusters Projection*
 
-![Labeled PCA Clusters](figures/pca_clusters_labeled.png)
+![Labeled PCA Clusters](figures/pca/dataset_72_pca_clusters_labeled.png)
 *Figure 4b: Labeled PCA Clusters Mapped to Songs*
 
 ### Spark / Big Data Analytics Validation
