@@ -190,18 +190,18 @@ Execution transcript: `spark_results.txt`
 All implementation details, commands, and verification steps are documented in `implementation_guide.md`.
 
 ## Glossary 
-* CQT: Constant-Q Transform is a time–frequency representation for music that maps audio into logarithmically spaced frequency bins aligned with musical notes. Unlike Fourier transforms with fixed resolution, CQT gives better pitch detail for low notes and better time detail for high notes, matching how humans hear music. For example, a low bass note and its harmonics stay clearly separated, while fast high-pitched claps or strokes remain sharp in time. The constant quality factor (Q) keeps harmonic patterns consistent across pitches, making CQT useful for instrument recognition, music transcription, and timbre analysis.
-* Low signal level: basic features extracted from an audio signal, which are currently the main focus of Music Information Retrieval techniques due to the limitations in capturing more complex aspects of music content.
-* MFCC: Mel-frequency cepstral coefficients are audio features that summarize the sound spectrum in a compact way, designed to match how humans perceive sound. Sound/raw audio is like a string of pressure values, comparable to an HD photo, and MFCC extracts the outline. Mel-freq relates to how humans hear sound (200hz and 400hz diff seems bigger than 5200hz and 5400 hz), and bends frequencies to match this perception. Cepstral analysis separates the overall shape of the sound (timbre) from fine details.
-* MIR (Music Information Retrieval): extraction of information from music and its analysis.
-* Taali: rhythmic clapping that denotes beats or sections within a time cycle (Taal). Qawwali (and other music forms) can be based on different taal cycles, most commonly teen-taal, which has 16 beats, segmented into 4 vibhags of 4 beats each.
-* Tabla: percussion drum component. Played to match taal cycles and support taali and vocals. 
-* Features Extracted:
-  * tabla_energy_mean: Overall percussion intensity across the entire performance.
-  * tabla_energy_var: Dynamic range and variation in tabla intensity.
-  * tabla_lowband_ratio: Bass emphasis ratio using lowest 20 CQT bins.
-  * tabla_activity: Proportion of time frames with active tabla signal.
-  * taali_mfcc_mean: Average timbral characteristic of vocal/clapping component.
-  * taali_mfcc_var: Timbral diversity in the taali component.
-  * taali_activity: Proportion of time frames with active vocal/clapping signal.
-  * taali_burstiness: Suddenness measure of clapping/transient events.
+* **CQT**: Constant-Q Transform is a time–frequency representation for music that maps audio into logarithmically spaced frequency bins aligned with musical notes. Unlike Fourier transforms with fixed resolution, CQT gives better pitch detail for low notes and better time detail for high notes, matching how humans hear music. For example, a low bass note and its harmonics stay clearly separated, while fast high-pitched claps or strokes remain sharp in time. The constant quality factor (Q) keeps harmonic patterns consistent across pitches, making CQT useful for instrument recognition, music transcription, and timbre analysis.
+* **Low signal level**: basic features extracted from an audio signal, which are currently the main focus of Music Information Retrieval techniques due to the limitations in capturing more complex aspects of music content.
+* **MFCC**: Mel-frequency cepstral coefficients are audio features that summarize the sound spectrum in a compact way, designed to match how humans perceive sound. Sound/raw audio is like a string of pressure values, comparable to an HD photo, and MFCC extracts the outline. Mel-freq relates to how humans hear sound (200hz and 400hz diff seems bigger than 5200hz and 5400 hz), and bends frequencies to match this perception. Cepstral analysis separates the overall shape of the sound (timbre) from fine details.
+* **MIR**: Music Information Retrieval refers to the extraction of information from music and its analysis.
+* **Taali**: rhythmic clapping that denotes beats or sections within a time cycle (Taal). Qawwali (and other music forms) can be based on different taal cycles, most commonly teen-taal, which has 16 beats, segmented into 4 vibhags of 4 beats each.
+* **Tabla**: percussion drum component. Played to match taal cycles and support taali and vocals. 
+* **Features Extracted**:
+  * `tabla_energy_mean`: Overall percussion intensity across the entire performance.
+  * `tabla_energy_var`: Dynamic range and variation in tabla intensity.
+  * `tabla_lowband_ratio`: Bass emphasis ratio using lowest 20 CQT bins.
+  * `tabla_activity`: Proportion of time frames with active tabla signal.
+  * `taali_mfcc_mean`: Average timbral characteristic of vocal/clapping component.
+  * `taali_mfcc_var`: Timbral diversity in the taali component.
+  * `taali_activity`: Proportion of time frames with active vocal/clapping signal.
+  * `taali_burstiness`: Suddenness measure of clapping/transient events.
