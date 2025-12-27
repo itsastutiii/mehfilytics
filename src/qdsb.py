@@ -17,12 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-#
 
 # qawali dataset builder(qdsb)
 # Constructs reference qawali dataset from associated metadata information
 # It reads/downloads original songs, then extracts short duration audio from them,
 # finally writing back to a user-defined data-set location in a compressed format.
+
+# the importance of this file is to create the songs-data.npy file, so if youre 
+# using a new dataset, even if you have the raw audio clips, this needs to be run first
+# this creates a dictionary with song IDs as keys and audio arrays as values
 
 import argparse
 from yt_dlp import YoutubeDL

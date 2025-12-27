@@ -28,328 +28,450 @@ python -c "import librosa, numpy, pandas, sklearn, pyspark; print('All imports s
 ## Phase 1 — Dataset Reconstruction & Curation
 Purpose: Download and curate raw Qawwali audio files from metadata specifications.
 
-### 1. Navigate to project root and run dataset builder
+### 1. Extraction of Data
+The .mp3 files that needed for running this project are in a compressed form under /data. the name of the file will be /dataset. To find it, unzip the compressed folder, retrieve /dataset, and drag-drop it to /data. If you prefer extracting the authentic way, follow the fork to the original repository and use it. I could only extract 34 files in that manner, which is why I did it this way rn. 
+
+### 2. Verify audio files
 ```
-python src/qdsb.py data/qawwali_audio_clean metadata/metadata_of_retrieved.json
-```
-### 2. Verify audio downloads
-```
-ls -la data/qawwali_audio_clean/*.mp3 | wc -l  
-# Should show 34 files (atleast at time of exe for me i could extract 34 :P)
+ls -la data/dataset/*.mp3 | wc -l  
+# Should show 72 files
 ```
 ### 3. Check audio format consistency
 ```
 python -c "  
 import librosa  
 import glob  
-for f in glob.glob('data/qawwali_audio_clean/*.mp3')[:5]:  
+for f in glob.glob('data/dataset/*.mp3')[:5]:  
     y, sr = librosa.load(f, sr=None)  
     print(f'{f}: {sr}Hz, mono={len(y.shape)==1}, duration={len(y)/sr:.2f}s')  
 "
 ```
-### 4. Validate songs-data.npy creation
+Expected output sample:
+```
+data/dataset/q059.mp3: 44100Hz, mono=True, duration=60.00s
+...
+```
+
+### 4. Dataset Construction (Numerical Representation)
+Once verified, the raw audio files are converted into a unified numerical dataset using:
+```
+python src/1_data_formating.py
+```
+If you face a warning, that's fine, verify the action using the snippet below:
 ```
 python -c "  
-import numpy as np  
-data = np.load('data/qawwali_audio_clean/songs-data.npy', allow_pickle=True).item()  
-print(f'Songs loaded: {len([k for k in data.keys() if k != \"rate\"])}')  
-print(f'Sample rate: {data[\"rate\"]}Hz')  
+import numpy as np
+data = np.load('data/dataset/songs-data.npy', allow_pickle=True).item()
+print(f'Songs loaded: {len([k for k in data.keys() if k != \"rate\"])}')
+print(f'Sample rate: {data[\"rate\"]}Hz')
 "
 ```
-Files used: `src/qdsb.py`, `metadata/metadata_of_retrieved.json`\
-Outputs generated:
+Expected Output:
 ```
-data/qawwali_audio_clean/*.mp3 (34 files)
-data/qawwali_audio_clean/songs-data.npy
+Songs loaded: 72
+Sample rate: 44100Hz
 ```
-Verification: 34 audio files at 44.1kHz mono, ~60 seconds each
+
+This step:
+- Loads all .mp3 files from `data/dataset/`
+- Normalizes sampling rate
+- Stores audio waveforms in a single serialized NumPy object
+
+
+Outputs of Phase 1:
+```
+data/dataset/
+├── q001.mp3
+├── q002.mp3
+├── ...
+├── q072.mp3
+└── songs-data.npy
+```
+Verification summary:
+- 72 audio files
+- 44.1 kHz sampling rate
+- Mono channel
+- ~60 seconds per clip
+- Successfully serialized into songs-data.npy
 
 ## Phase 2 — Signal-Level Feature Extraction
 Purpose: Extract tabla (CQT) and taali (MFCC) features from audio using source separation.
 
-### 1. Run feature extraction with reload and extract flags
+### 1. Feature Extraction and Source Separation
+Signal-level features are extracted by running the detection and extraction pipeline:
 ```
-python src/qdetect.py data/qawwali_audio_clean --reload --extract
+python src/qdetect.py data/dataset --reload --extract
+```
+Expected Output Sample:
+```
+...
+2025-12-27 12:56:45,082 - __main__ - 
+Classification starting for song: q040
+2025-12-27 12:56:45,089 - __main__ - q040 categorized as Qawali after detecting tabla and taali
+2025-12-27 12:56:45,089 - __main__ - 
+Classification starting for song: q054
+2025-12-27 12:56:45,094 - __main__ - Tabla not detected, model calculated pitch-power mean=71.62558025856795 and std-dev 15.92587728804688
+2025-12-27 12:56:45,094 - __main__ - 
+--------------------Classification Results----------------------------
+
+2025-12-27 12:56:45,094 - __main__ - Total=72 non-Qawalis=18 TablaTaali=48 Tabla=0 Taali=6
+```
+This step performs the following operations for each audio clip:
+* Separates tabla and taali sources using NMF-based decomposition
+* Extracts:
+  * Tabla features as Constant-Q Transform (CQT) representations
+  * Taali features as Mel-Frequency Cepstral Coefficients (MFCCs)
+* Stores time–frequency matrices for downstream aggregation
+
+
+### 2. Verification of Feature Files
+The extracted features are saved as a serialized NumPy object:
+```
+data/dataset/features/tt-features.npy
+```
+Verify file creation:
+```
+ls -la data/dataset/features/
 ```
 
-### 2. Verify feature file creation
+### 3. Feature Matrix Integrity Checks (opt)
+To inspect the structure of extracted features:
 ```
-ls -la data/qawwali_audio_clean/features/
+python -c "
+import numpy as np
+
+features = np.load(
+    'data/dataset/features/tt-features.npy',
+    allow_pickle=True
+).item()
+
+for key, mat in list(features.items())[:4]:
+    print(f'{key}: shape={mat.shape}, type={type(mat)}')
+"
+```
+### 4. Validation of Time–Frequency Representations (opt)
+Confirm expected dimensionality for each feature type:
+```
+python -c "
+import numpy as np
+
+features = np.load(
+    'data/dataset/features/tt-features.npy',
+    allow_pickle=True
+).item()
+
+tabla_keys = [k for k in features.keys() if 'tabla' in k]
+taali_keys = [k for k in features.keys() if 'taali' in k]
+
+print(f'Tabla features: {len(tabla_keys)} files')
+print(f'Taali features: {len(taali_keys)} files')
+print(f'Tabla CQT bins: {features[tabla_keys[0]].shape[0]} (expected: 84)')
+print(f'Taali MFCC coeffs: {features[taali_keys[0]].shape[0]} (expected: 13)')
+"
 ```
 
-### 3. Check feature matrix shapes
+Outputs of Phase 2: 
 ```
-python -c "  
-import numpy as np  
-features = np.load('data/qawwali_audio_clean/features/tt-features.npy', allow_pickle=True).item()  
-for key, mat in list(features.items())[:4]:  
-    print(f'{key}: shape={mat.shape}, type={type(mat)}')  
-"
+data/dataset/features/
+└── tt-features.npy
+
 ```
-### 4. Validate time-frequency representations
-```
-python -c "  
-import numpy as np  
-features = np.load('data/qawwali_audio_clean/features/tt-features.npy', allow_pickle=True).item()  
-tabla_keys = [k for k in features.keys() if 'tabla' in k]  
-taali_keys = [k for k in features.keys() if 'taali' in k]  
-print(f'Tabla features: {len(tabla_keys)} files')  
-print(f'Taali features: {len(taali_keys)} files')  
-print(f'Tabla CQT bins: {features[tabla_keys[0]].shape[0]} (expected: 84)')  
-print(f'Taali MFCC coeffs: {features[taali_keys[0]].shape[0]} (expected: 13)')  
-"
-```
-Files used: `src/qdetect.py`\
-Outputs generated:
-```
-data/qawwali_audio_clean/features/tt-features.npy
-```
-Verification: Tabla features have 84 CQT bins, Taali features have 13 MFCC coefficients, both are time-frequency matrices
+Verification summary:
+- Tabla features: 84 CQT frequency bins
+- Taali features: 13 MFCC coefficients
+- Features stored as time–frequency matrices for all processed songs
+
 
 ## Phase 3 — Feature Reduction & Validation
-Purpose: Reduce time-frequency matrices to interpretable per-song scalar features.
+Purpose: To convert high-dimensional time–frequency representations into a compact, interpretable per-song feature vector suitable for clustering and statistical analysis.
 
-### 1. Run feature reduction script
+### 1. Feature Reduction
+The signal-level features extracted in Phase 2 (CQT for tabla, MFCC for taali) are aggregated into scalar descriptors using:
 ```
-python src/4_reduce_features.py
+python src/3_reduce_features.py
 ```
+Output Sample:
+```
+
+         tabla_energy_mean  tabla_energy_var  ...  taali_activity  taali_burstiness
+song_id                                       ...                                  
+q059              0.008847          0.001225  ...        0.209946          0.000834
+q071              0.009292          0.000912  ...        0.000000          0.000458
+q065              0.023772          0.007164  ...        0.469621          0.001975
+q064              0.014795          0.002556  ...        0.139899          0.002016
+q070              0.018744          0.004673  ...        0.000000          0.000967
+
+[5 rows x 8 columns]
+(72, 8)
+```
+This step:
+- Aggregates time–frequency matrices across time
+- Computes energy statistics, activity measures, and distributional descriptors
+- Produces a fixed-length feature vector for each song
+
+
 ### 2. Verify CSV output structure
 ```
-head -5 data/qawwali_features.csv  
-wc -l data/qawwali_features.csv
+head -5 data/dataset_72_qawwali_features.csv  
+wc -l data/dataset_72_qawwali_features.csv 
 ```
-### 3. Check feature dimensions and ranges
+### 3. Feature Dimensions and Ranges (Optional)
 ```
-python -c "  
-import pandas as pd  
-df = pd.read_csv('data/qawwali_features.csv', index_col='song_id')  
-print(f'Data shape: {df.shape}')  
-print(f'Feature columns: {list(df.columns)}')  
-print(f'Feature ranges:')  
-print(df.describe().loc[['min', 'max', 'mean']])  
+python -c "
+import pandas as pd
+
+df = pd.read_csv('data/dataset_72_qawwali_features.csv', index_col='song_id')
+print(df.describe().loc[['min', 'mean', 'max']])
 "
 ```
-### 4. Validate feature correlations
+This confirms:
+- Non-negative energy features
+- Reasonable dynamic ranges
+- No degenerate (constant) columns
+Outputs of Phase 3
 ```
-python -c "  
-import pandas as pd  
-import numpy as np  
-df = pd.read_csv('data/qawwali_features.csv', index_col='song_id')  
-corr = df.corr()  
-print('Feature correlations (absolute values > 0.5):')  
-for i in range(len(corr.columns)):  
-    for j in range(i+1, len(corr.columns)):  
-        if abs(corr.iloc[i, j]) > 0.5:  
-            print(f'{corr.columns[i]} - {corr.columns[j]}: {corr.iloc[i, j]:.3f}')  
+data/
+└── dataset_72_qawwali_features.csv
+```
+Verification summary:
+- Fixed-length representation per song
+- 8 interpretable acoustic features
+- Suitable for clustering, PCA, and profiling
+
+
+## Phase 4 — Unsupervised Pattern Discovery & Visualization
+This phase applies unsupervised learning techniques to the reduced feature matrix obtained in Phase 3 in order to (i) discover latent performance groupings and (ii) visualize structure in a lower-dimensional space.
+
+### Phase 4A — Unsupervised Discovery (Hierarchical Clustering)
+Purpose: 
+To identify natural groupings of Qawwali performances based purely on acoustic feature similarity, without using labels or metadata.
+
+#### 1. Hierarchical Clustering
+Hierarchical clustering is performed on the standardized feature matrix using Ward’s linkage:
+```
+python src/4_load_csv.py
+```
+Sample console output:
+```
+Cluster distribution:
+1    10
+2    14
+3    23
+4    25
+```
+This script:
+- Loads the reduced feature CSV
+- Standardizes features
+- Computes pairwise Euclidean distances
+- Applies Ward hierarchical clustering
+- Cuts the dendrogram at 4 clusters
+
+
+#### 2. Verification of Clustering Results
+```
+python -c "
+import pandas as pd
+
+df = pd.read_csv('data/dataset_72_features_clustered.csv', index_col='song_id')
+print(f'Cluster sizes: {df[\"cluster\"].value_counts().to_dict()}')
+print(f'Total songs: {len(df)}')
 "
 ```
-Files used: `src/4_reduce_features.py`\ 
-Outputs generated: `data/qawwali_features.csv`\
-Verification: 34 rows × 8 features, reasonable ranges, partial independence between tabla and taali features
 
-## Phase 4A — Unsupervised Discovery (Hierarchical Clustering)
-Purpose: Apply hierarchical clustering to discover performance regimes in feature space.
+Outputs (Phase 4A):
+```
+data/
+└── dataset_72_features_clustered.csv
 
-### 1. Create clustering script (since 5_load_csv.py is referenced but not provided)
+figures/
+└── dendrogram.png
 ```
-cat > src/5_load_csv.py << 'EOF'  
-import pandas as pd  
-import numpy as np  
-from sklearn.preprocessing import StandardScaler  
-from scipy.cluster.hierarchy import linkage, dendrogram, fcluster  
-from scipy.spatial.distance import pdist  
-import matplotlib.pyplot as plt  
+Verification summary:
+- 4 clusters of reasonable and balanced size
+- No collapsed clusters
+- Clustering driven purely by acoustic features
 
-# Load and normalize features  
-df = pd.read_csv('data/qawwali_features.csv', index_col='song_id')  
-scaler = StandardScaler()  
-df_scaled = pd.DataFrame(scaler.fit_transform(df), index=df.index, columns=df.columns)  
 
-# Compute distances and perform hierarchical clustering  
-distances = pdist(df_scaled, metric='euclidean')  
-Z = linkage(distances, method='ward')  
-
-# Plot dendrogram  
-plt.figure(figsize=(12, 6))  
-dendrogram(Z, labels=df_scaled.index.tolist(), leaf_rotation=90)  
-plt.title('Hierarchical Clustering Dendrogram')  
-plt.tight_layout()  
-plt.savefig('figures/dendrogram.png', dpi=300)  
-plt.close()  
-
-# Cut dendrogram at 4 clusters  
-cluster_labels = fcluster(Z, t=4, criterion='maxclust')  
-df_scaled['cluster'] = cluster_labels  
-
-# Save clustered data  
-df_clustered = df_scaled.copy()  
-df_clustered.to_csv('data/qawwali_features_clustered.csv')  
-  
-print(f'Cluster distribution:')  
-print(df_clustered['cluster'].value_counts().sort_index())  
-EOF
+#### 3. Interpretive Cluster Profiling
+Run cluster profiling script
 ```
-### 2. Run clustering
+python src/5_cluster_profiling.py
 ```
-python src/5_load_csv.py
-```
-### 3. Verify clustering results
-```
-tail -5 data/qawwali_features_clustered.csv  
-python -c "  
-import pandas as pd  
-df = pd.read_csv('data/qawwali_features_clustered.csv', index_col='song_id')  
-print(f'Cluster sizes: {df[\"cluster\"].value_counts().to_dict()}')  
-print(f'Total songs: {len(df)}')  
-"
-```
-### 4. Check dendrogram creation
-```
-ls -la figures/dendrogram.png
-```
-Files used: Generated `src/5_load_csv.py`, `data/qawwali_features.csv`\
-Outputs generated:
-```
-data/qawwali_features_clustered.csv
-figures/dendrogram.png
-```
-Verification: 4 clusters with reasonable size distribution, no singletons or collapsed clusters
-
-## Phase 4B (Part 1) — Interpretive Cluster Profiling
-Purpose: Generate descriptive profiles for each discovered cluster using feature statistics.
-
-### 1. Run cluster profiling script
-```
-python src/6_cluster_profiling.py
-```
-### 2. Verify centroid table creation
+Verify centroid table creation
 ```
 cat data/cluster_centroids.csv
 ```
-### 3. Check profile plots
+Outputs (Cluster Profiling)
 ```
-ls -la figures/cluster_*_profile.png
-```
-### 4. Validate cluster interpretations
-```
-python -c "  
-import pandas as pd  
-centroids = pd.read_csv('data/cluster_centroids.csv', index_col='cluster')  
-print('Cluster centroids (rounded):')  
-print(centroids.round(2))  
-print('\nFeature rankings per cluster:')  
-for cluster_id in centroids.index:  
-    print(f'\\nCluster {cluster_id} top features:')  
-    ranked = centroids.loc[cluster_id].sort_values(ascending=False)  
-    print(ranked.head(3))  
-"
-```
-Files used: `src/6_cluster_profiling.py` \
-Outputs generated:
-```
-data/cluster_centroids.csv
+data/
+└── cluster_centroids.csv
+
 figures/cluster_*_profile.png (4 files)
 ```
 Verification: Each cluster shows distinct feature patterns, interpretations remain audio-only and descriptive
 
-## Phase 4B (Part 2) — PCA Visualization
-Purpose: Visualize cluster separation in 2D space using PCA for exploratory analysis.
+### Phase 4B — PCA-Based Visualization
+Purpose: To visualize the distribution of songs and clusters in a low-dimensional space for exploratory analysis.
 
-### 1. Run PCA visualization script
+#### 1. PCA Projection
 ```
-python src/7_pca_visualization.py
+python src/6_pca_visualization.py
 ```
-### 2. Check explained variance
+Console output:
 ```
-python -c "  
-import pandas as pd  
-from sklearn.decomposition import PCA  
-df = pd.read_csv('data/qawwali_features_clustered.csv', index_col='song_id')  
-X = df.drop(columns=['cluster'])  
-pca = PCA(n_components=2)  
-X_pca = pca.fit_transform(X)  
-print(f'PC1 explained variance: {pca.explained_variance_ratio_[0]:.3f}')  
-print(f'PC2 explained variance: {pca.explained_variance_ratio_[1]:.3f}')  
-print(f'Total explained variance: {pca.explained_variance_ratio_.sum():.3f}')  
-"
+Explained variance ratio: [0.341, 0.229]
+Total explained variance: 0.570
 ```
-### 3. Verify PCA plots
-```
-ls -la figures/pca_clusters*.png
-```
-Files used: `src/7_pca_visualization.py` \
-Outputs generated:
-```
-figures/pca_clusters.png
-figures/pca_clusters_labeled.png
-```
-Verification: ~60% total variance explained, clear but not perfect cluster separation (expected for unsupervised audio features)
+This indicates that the first two principal components capture ~57% of total variance.
 
-## Phase 4B (Part 3) — Big Data Analytics Layer (Spark / Hive)
-Purpose: Demonstrate scalable analytics using Spark SQL on clustered feature data.
+#### 2. PCA Plots
+Generated plots:
+```
+figures/dataset_72_pca_clusters.png
+figures/dataset_72_pca_clusters_labeled.png
+```
+Outputs (Phase 4B):
+```
+figures/
+├── dataset_72_pca_clusters.png
+└── dataset_72_pca_clusters_labeled.png
+```
+Verification summary:
+- Moderate but meaningful cluster separation
+- Partial overlap expected due to unsupervised setting
+- PCA used strictly for visualization, not clustering
 
-### 1. Start Spark shell
+
+## Phase 5 — Big Data Analytics Layer (Spark SQL)
+Purpose:  To demonstrate scalable, distributed analytics on the clustered Qawwali feature dataset using Apache Spark.
+This phase validates that the reduced and clustered features can be seamlessly integrated into a Big Data processing framework, even though the current dataset size is modest.
+
+
+⚠️ Note: This phase focuses on pipeline compatibility and scalability, not performance benchmarking.
+
+
+### 1. Launch Spark Shell
+Activate the virtual environment and start PySpark:
 ```
 pyspark
 ```
-### 2. Inside Spark shell, load and analyze data
+A local Spark session is initialized (master = local[*]).
+
+### 2. Load Clustered Feature Data in Spark
+Inside the Spark shell:
 ```
-from pyspark.sql import SparkSession  
-spark = SparkSession.builder.appName("QawwaliBDA").getOrCreate()  
+from pyspark.sql import SparkSession
 
-# Load CSV data  
-df = spark.read.csv(  
-    "data/qawwali_features_clustered.csv",  
-    header=True,  
-    inferSchema=True  
-)  
+spark = SparkSession.builder.appName("QawwaliBDA").getOrCreate()
 
-# Show schema and sample data  
-df.printSchema()  
-df.show(5)  
-
-# Cluster size aggregation  
-df.groupBy("cluster").count().show()  
-
-# Per-cluster feature means  
-df.groupBy("cluster").mean().show(truncate=False)  
-
-# Register as SQL table  
-df.createOrReplaceTempView("qawwali_clusters")  
-
-# Spark SQL query  
-spark.sql("""  
-SELECT  
-  cluster,  
-  COUNT(*) AS num_performances,  
-  AVG(tabla_energy_mean) AS avg_tabla_energy,  
-  AVG(taali_activity) AS avg_taali_activity  
-FROM qawwali_clusters  
-GROUP BY cluster  
-ORDER BY avg_tabla_energy DESC  
-""").show()  
-
-# Save as Parquet  
-df.write.mode("overwrite").parquet("data/qawwali_features_clustered.parquet")  
-
-# Verify Parquet reload  
-spark.read.parquet("data/qawwali_features_clustered.parquet").show(5)
+df = spark.read.csv(
+    "data/dataset_72_features_clustered.csv",
+    header=True,
+    inferSchema=True
+)
 ```
-
-### 3. Exit Spark and verify outputs
+### 3. Inspect Schema and Sample Records
 ```
-exit  
-ls -la data/qawwali_features_clustered.parquet/
+df.printSchema()
+df.show(5)
 ```
-Files used: `data/qawwali_features_clustered.csv`, Spark shell \
-Outputs generated:
+Expected schema:
+```
+song_id: string
+tabla_energy_mean: double
+tabla_energy_var: double
+tabla_lowband_ratio: double
+tabla_activity: double
+taali_mfcc_mean: double
+taali_mfcc_var: double
+taali_activity: double
+taali_burstiness: double
+cluster: integer
+```
+### 4. Cluster-Level Aggregations (Spark DataFrame API)
+Cluster size distribution:
+```
+df.groupBy("cluster").count().show()
+```
+Sample output:
+```
+cluster | count
+----------------
+1       | 10
+2       | 14
+3       | 23
+4       | 25
+```
+Per-cluster mean feature values:
+```
+df.groupBy("cluster").mean().show(truncate=False)
+```
+This reproduces cluster centroids previously computed in Phase 4, now using distributed execution.
+### 5. Spark SQL Analysis
+Register the DataFrame as a temporary SQL table:
+```
+df.createOrReplaceTempView("qawwali_clusters")
+```
+Run a SQL query to compare clusters:
+```
+spark.sql("""
+SELECT
+  cluster,
+  COUNT(*) AS num_performances,
+  AVG(tabla_energy_mean) AS avg_tabla_energy,
+  AVG(taali_activity) AS avg_taali_activity
+FROM qawwali_clusters
+GROUP BY cluster
+ORDER BY avg_tabla_energy DESC
+""").show()
+```
+This demonstrates:
+* SQL-based analytics on acoustic feature data
+* Interoperability between DataFrame and SQL APIs
 
-- `data/qawwali_features_clustered.parquet/`
-- Console output showing cluster statistics
 
-Verification: Parquet files created, data integrity maintained on reload, Spark SQL queries execute successfully.\
+### 6. Persist Data in Columnar Format (Parquet)
+To simulate scalable storage and downstream analytics:
+```
+df.write.mode("overwrite").parquet(
+    "data/dataset_72_features_clustered.parquet"
+)
+```
+Verify successful reload:
+```
+spark.read.parquet(
+    "data/dataset_72_features_clustered.parquet"
+).show(5)
+```
+### 7. Exit Spark and Verify Output
+Exit the Spark shell:
+```
+exit()
+```
+Verify Parquet files:
+```
+ls -la data/dataset_72_features_clustered.parquet/
+```
+Expected contents:
+```
+_SUCCESS
+part-00000-*.snappy.parquet
+```
+Outputs of Phase 5:
+```
+data/
+└── dataset_72_features_clustered.parquet/
+    ├── part-00000-*.snappy.parquet
+    └── _SUCCESS
+```
+Verification Summary:
+- Clustered feature data successfully loaded into Spark
+- Aggregations and SQL queries executed correctly
+- Parquet persistence and reload verified
+- Pipeline confirmed to be compatible with Big Data analytics frameworks
 
-# Notes
+
+## Notes
 - All scripts assume execution from project root directory
 - The pipeline processes 34 Qawwali performances (~60 seconds each)
 - Spark runs in local mode; no distributed cluster required

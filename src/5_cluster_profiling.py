@@ -1,10 +1,14 @@
-# phase 4 
+# phase 4 part 2
 # Load the Clustered Dataset (Canonical)
 import pandas as pd
 
 # Load clustered feature table
+# i dont like how all these are hardcoded. 
+# a better way would probably be to replace all these with variables and have those variables stored in a central place like how we store API keys in .env, 
+# and have them change, nothing else in the entire program needs to move around then, just those values. 
+
 df = pd.read_csv(
-    "data/qawwali_features_clustered.csv",
+    "data/dataset_72_features_clustered.csv",
     index_col="song_id"
 )
 
@@ -16,7 +20,7 @@ cluster_means = df.groupby("cluster").mean()
 print(cluster_means)
 
 # saveing centroids alag se 
-cluster_means.to_csv("data/cluster_centroids.csv")
+cluster_means.to_csv("data/dataset_72_cluster_centroids.csv")
 
 # Make the Differences Explicit (Readable Table)
 cluster_means_rounded = cluster_means.round(2)
@@ -38,21 +42,6 @@ for cluster_id in cluster_means.index:
     plt.tight_layout()
     plt.show()
 
-# OUTPUT: 
-# 🟣 Cluster 1 — Vocal / Taali-Forward
-# High taali activity
-# Low tabla energy
-# 🔴 Cluster 2 — Percussion-Dominant
-# Highest tabla energy & variance
-# Moderate taali
-# 🟢 Cluster 3 — Restrained / Low-Energy
-# Low everything
-# Transitional / meditative sections
-# 🔵 Cluster 4 — Steady Rhythmic Grounding
-# Near-average tabla
-# Very low taali
-# Minimal expressive surges
-
 # save cluste figures 
 import matplotlib.pyplot as plt
 import os
@@ -72,7 +61,7 @@ for cluster_id in cluster_means.index:
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
 
-    out_path = f"figures/cluster_{cluster_id}_profile.png"
+    out_path = f"figures/clusters/dataset_72_cluster_{cluster_id}_profile.png"
     plt.savefig(out_path, dpi=300)
     plt.close()   # IMPORTANT: prevents overlap / memory issues
 

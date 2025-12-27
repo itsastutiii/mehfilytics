@@ -22,6 +22,9 @@
 # Uses basic signal properties likes MFCC and CQT in combination with some
 # heuristics to recognize songs as Qawwalis
 
+# qdetect.py performs source separation and feature extraction
+# creating tt-features.npy with tabla CQT and taali MFCC features.
+
 import argparse
 import os
 import sys

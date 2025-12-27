@@ -3,16 +3,14 @@ import pandas as pd
 
 # Load clustered dataset (already z-scored)
 df = pd.read_csv(
-    "data/qawwali_features_clustered.csv",
+    "data/dataset_72_features_clustered.csv",
     index_col="song_id"
 )
 
 X = df.drop(columns=["cluster"])
 y = df["cluster"]
 
-print(X.shape, y.shape)
-
-# o/p: (34, 8) (34,)
+print(X.shape, y.shape) # not needed anymore but for constant reassurance, why not 
 
 # Run PCA (2 Components Only)
 from sklearn.decomposition import PCA
@@ -48,10 +46,12 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 
-plt.savefig("figures/pca_clusters.png", dpi=300)
+# screaming at all this hardcoding right now fr
+# should have been {dataset_name}_pca_clusters.png
+plt.savefig("figures/pca/dataset_72_pca_clusters.png", dpi=300)
 plt.close()
 
-print("Saved: figures/pca_clusters.png")
+print("Saved: figures/pca/dataset_72_pca_clusters.png")
 
 # Label Points
 plt.figure(figsize=(8, 7))
@@ -70,12 +70,12 @@ plt.xlabel("PC1")
 plt.ylabel("PC2")
 plt.tight_layout()
 
-plt.savefig("figures/pca_clusters_labeled.png", dpi=300)
+plt.savefig("figures/pca/dataset_72_pca_clusters_labeled.png", dpi=300)
 plt.close()
 
-print("Saved: figures/pca_clusters_labeled.png")
+print("Saved: figures/pca/dataset_72_pca_clusters_labeled.png")
 
-# OUTPUT: 
+# OUTPUT FORMAT: 
 # Explained variance ratio: [0.33342327 0.26904717]
 #Exp: 
 # ~33% + ~27% = ~60% total variance
@@ -87,3 +87,7 @@ print("Saved: figures/pca_clusters_labeled.png")
 # Saved: figures/pca_clusters.png
 # Saved: figures/pca_clusters_labeled.png
 
+# NEW OUTPUT
+# (72, 8) (72,)
+# Explained variance ratio: [0.34110802 0.2292277 ]
+# Total explained variance: 0.5703357160995417

@@ -1,8 +1,12 @@
+# converts time-frequency matrices to 8 scalar features per song 
+# outputting qawwali_features.csv
+
 import numpy as np
 import pandas as pd
 
-FEATURE_PATH = "data/qawwali_audio_clean/features/tt-features.npy"
-OUT_CSV = "data/qawwali_features.csv"
+# Note to self -- make this dynamic
+FEATURE_PATH = "data/dataset/features/tt-features.npy"
+OUT_CSV = "data/dataset_72_qawwali_features.csv"
 
 data = np.load(FEATURE_PATH, allow_pickle=True).item()
 
@@ -41,33 +45,3 @@ print(df.head())
 print(df.shape)
 
 df.to_csv(OUT_CSV)
-
-
-# OUTPUT
-
-#          tabla_energy_mean  tabla_energy_var  ...  taali_activity  taali_burstiness
-# song_id                                       ...                                  
-# q012              0.010104          0.000702  ...        0.028157          0.000599
-# q006              0.016255          0.005761  ...        0.742912          0.001857
-# q007              0.019860          0.007037  ...        0.000000          0.001738
-# q013              0.029122          0.015438  ...        0.618674          0.001513
-# q039              0.021258          0.010315  ...        0.000000          0.001483
-
-# [5 rows x 8 columns]
-# (34, 8)
-
-# ✔️ 1 row = 1 performance
-# ✔️ 8 interpretable features
-# ✔️ Spark / Hive ready
-# ✔️ MIR-valid
-
-# Why This Is Methodologically Strong
-# MIR Alignment
-# Mid-level features
-# Energy + temporal statistics
-# No semantic leakage
-# BDA Alignment
-# Flat table
-# Schema-first
-# Parquet-compatible
-# Distributed-friendly
