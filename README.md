@@ -1,6 +1,6 @@
 # Mehfilytics -- Performance-Based Acoustic Analysis of Qawwali Music
 
-🌙 Mehfilytics investigates whether distinct performance based acoustic regimes emerge within Qawwali music, using audio-only, unsupervised analysis and a Big Data Analytics style pipeline.
+🌙 Mehfilytics investigates whether distinct performance based acoustic regimes^ emerge within Qawwali music, using audio-only, unsupervised analysis and a Big Data Analytics style pipeline.
 
 
 This project deliberately studies how Qawwali is performed (focus on rhythm, percussion, vocal activity, and intensity) not lyrics, devotion, or religious semantics (yet!). All interpretations are grounded strictly in acoustic evidence.
@@ -10,7 +10,7 @@ This version of the project is an outline of something cooler -- for now, it is 
 
 
 ## Objective
-To determine whether unsupervised clustering of mid-level acoustic features can reveal recurring performance regimes in Qawwali music, and to operationalize the results within a Spark compatible analytics pipeline.
+To investigate whether recurring patterns of musical performance can be discovered in Qawwali — a tradition characterized by long, improvisational, and collectively driven performances — using only audio-based, unsupervised analysis of rhythm, percussion, and vocal activity, and to study these patterns at scale within a Spark-based pipeline.
 
 
 **Key constraints**:
@@ -21,7 +21,7 @@ To determine whether unsupervised clustering of mid-level acoustic features can 
 ## Data Overview
 ### Audio
 - Curated subset of the QawwalRang dataset
-- 34 validated audio clips
+- 72 validated audio clips
 - ~60 seconds each
 - Mono, 44.1 kHz
 - Dataset intentionally frozen post-validation for signal correctness
@@ -47,7 +47,7 @@ Each audio clip is reduced to a **single interpretable feature vector** capturin
 
 Final feature table:
 ```
-34 songs × 8 acoustic features
+72 songs × 8 acoustic features
 ```
 ## Outputs
 This project produces analytic artifacts, not predictive models.
@@ -194,6 +194,7 @@ All implementation details, commands, and verification steps are documented in `
 * **Low signal level**: basic features extracted from an audio signal, which are currently the main focus of Music Information Retrieval techniques due to the limitations in capturing more complex aspects of music content.
 * **MFCC**: Mel-frequency cepstral coefficients are audio features that summarize the sound spectrum in a compact way, designed to match how humans perceive sound. Sound/raw audio is like a string of pressure values, comparable to an HD photo, and MFCC extracts the outline. Mel-freq relates to how humans hear sound (200hz and 400hz diff seems bigger than 5200hz and 5400 hz), and bends frequencies to match this perception. Cepstral analysis separates the overall shape of the sound (timbre) from fine details.
 * **MIR**: Music Information Retrieval refers to the extraction of information from music and its analysis.
+* Performance Regime: A recurring way the music is being performed, based on how it sounds — not what it means. i.e. a stable acoustic pattern that keeps reappearing across Qawwali performances.
 * **Taali**: rhythmic clapping that denotes beats or sections within a time cycle (Taal). Qawwali (and other music forms) can be based on different taal cycles, most commonly teen-taal, which has 16 beats, segmented into 4 vibhags of 4 beats each.
 * **Tabla**: percussion drum component. Played to match taal cycles and support taali and vocals. 
 * **Features Extracted**:
